@@ -8,7 +8,7 @@ createTestCafe('localhost', 1337, 1338)
 
     return runner
       .src(['tests/**/*.spec.ts'])
-      .browsers(['chrome', 'safari', 'firefox'])
+      .browsers(['chrome:headless'])
       .reporter(['spec', {
         name: 'html',
         output: 'reports/report.html'
