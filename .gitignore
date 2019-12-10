@@ -14,6 +14,9 @@
 
 ### Test
 logs
+/screenshots/combined
+/screenshots/diff
+/screenshots/tests
 
 
 ### MacOS
