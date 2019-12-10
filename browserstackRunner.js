@@ -6,7 +6,7 @@ createTestCafe('localhost', 1337, 1338)
     testcafe = tc;
     const runner = testcafe.createRunner();
 
-    process.env.BROWSERSTACK_USERNAME = '<BROWSERSTACK_USERNAME>';
+    process.env.BROWSERSTACK_USERNAME = '<MY_BROWSERSTACK_USERNAME>';
     process.env.BROWSERSTACK_ACCESS_KEY = '<MY_BROWSERSTACK_ACCESS_KEY>';
 
     //We need this for taking screenshots of elements
