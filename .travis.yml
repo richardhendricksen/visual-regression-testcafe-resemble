@@ -7,4 +7,4 @@ script:
   # Install npm packages
   - "npm install"
   # Run TestCafe
-  - "./node_modules/.bin/testcafe 'path:`/usr/bin/google-chrome-stable` --headless --disable-gpu --remote-debugging-port=9222 --remote-debugging-address=0.0.0.0' test.js --skip-js-errors --assertion-timeout 30000"
+  - "./node_modules/.bin/testcafe 'path:`/usr/bin/google-chrome-stable` --headless --disable-gpu --remote-debugging-port=9222 --remote-debugging-address=0.0.0.0' tests/todomvc.spc.ts --skip-js-errors --assertion-timeout 30000"
