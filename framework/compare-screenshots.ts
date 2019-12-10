@@ -39,7 +39,7 @@ export default async (t, element): Promise<number> => {
     fs.copyFileSync(testScreenshotPath, baselineScreenshotPath);
     console.error('ERROR: No baseline present, saving current screenshot as baseline');
 
-    return -1;
+    return 999;
   }
 
   const options = {
