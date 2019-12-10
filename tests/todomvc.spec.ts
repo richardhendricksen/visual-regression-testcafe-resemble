@@ -14,7 +14,6 @@ fixture(`todomvc`)
 
 test('Input field', async t => {
 
-    await t.resizeWindow(1280, 1024);
     const inputFieldElement = Selector('body > todo-app > section > header > input');
 
     await t.expect(await compareElement(t, inputFieldElement)).lt(0.1, 'Images are not equal');
