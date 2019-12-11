@@ -1,21 +1,19 @@
 language: node_js
-node_js: 10
-
-# Enable container-based mode
-sudo: false
-
-# Switch distribution to Ubuntu 14.04
-dist: trusty
-
+node_js:
+  - "10"
 addons:
-  # Install Google Chrome
-  # Ref1: https://docs.travis-ci.com/user/chrome
-  # Ref2: https://docs.travis-ci.com/user/gui-and-headless-browsers/#Using-the-Chrome-addon-in-the-headless-mode
-  # Ref3: https://iamakulov.com/notes/install-google-chrome-on-travis/
   chrome: stable
-
+  apt:
+    packages:
+      - fluxbox
+before_install:
+  - stty cols 80
+install:
+  - yarn
+before_script:
+  - "export DISPLAY=:99.0"
+  - "sh -e /etc/init.d/xvfb start"
+  - sleep 3
+  - fluxbox >/dev/null 2>&1 &
 script:
-  # Install npm packages
-  - "npm install"
-  # Run TestCafe
-  - "./node_modules/.bin/testcafe 'chrome --headless --disable-gpu --remote-debugging-port=9222 --remote-debugging-address=0.0.0.0' tests/todomvc.spec.ts --skip-js-errors --assertion-timeout 30000"
+  - yarn test:ci
