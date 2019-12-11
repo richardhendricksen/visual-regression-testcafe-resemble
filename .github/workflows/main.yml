@@ -8,21 +8,23 @@ jobs:
     steps:
       - uses: actions/checkout@v1
 
-      - run: sudo apt-get install xvfb
-      - run: export DISPLAY=':99.0'
-      - run: Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+      - name: start xvfb
+        run: |
+        sudo apt-get install xvfb
+        export DISPLAY=':99.0'
+        Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
 
-      - name: Use node.js 10
+      - name: install node.js 10
         uses: actions/setup-node@v1
         with:
           version: 10
 
-      - name: Visual Regression test
+      - name: run test
         run: |
           yarn
           yarn test:ci
 
-      - name: Archive html report
+      - name: archive html report
         uses: actions/upload-artifact@v1
         with:
           name: visual-regression-report
