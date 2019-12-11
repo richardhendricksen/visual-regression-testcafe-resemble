@@ -26,4 +26,4 @@ jobs:
         uses: actions/upload-artifact@v1
         with:
           name: visual-regression-report
-          path: rreports/report.html
+          path: reports/report.html
