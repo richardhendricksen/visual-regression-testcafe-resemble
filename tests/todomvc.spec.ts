@@ -18,3 +18,11 @@ test('Input field', async t => {
 
     await t.expect(await compareElement(t, inputFieldElement)).lt(0.1, 'Images are not equal');
 });
+
+test('Input field with diff (should fail)', async t => {
+
+    const inputFieldElement = Selector('body > todo-app > section > header > input');
+    await t.typeText(inputFieldElement, 'My Todo');
+
+    await t.expect(await compareElement(t, inputFieldElement)).lt(0.1, 'Images are not equal');
+});
