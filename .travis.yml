@@ -1,19 +1,17 @@
-language: node_js
-node_js:
-  - "10"
+dist: trusty
+services:
+  - xvfb
+sudo: required
+
 addons:
-  chrome: stable
   apt:
+    sources:
+      - google-chrome
     packages:
-      - fluxbox
-before_install:
-  - stty cols 80
-install:
-  - yarn
+      - google-chrome-stable fluxbox
+
 before_script:
   - "export DISPLAY=:99.0"
   - "sh -e /etc/init.d/xvfb start"
   - sleep 3
   - fluxbox >/dev/null 2>&1 &
-script:
-  - yarn test:ci
