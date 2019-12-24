@@ -8,8 +8,11 @@ createTestCafe('localhost', 1337, 1338)
 
         process.env.BROWSERSTACK_USERNAME = '<MY_BROWSERSTACK_USERNAME>';
         process.env.BROWSERSTACK_ACCESS_KEY = '<MY_BROWSERSTACK_ACCESS_KEY>';
+        process.env.BROWSERSTACK_USE_AUTOMATE = '1';
+        process.env.BROWSERSTACK_PROJECT_NAME = 'Todo App';
+        process.env.BROWSERSTACK_BUILD_ID = 'My Build Id';
 
-        //We need this for taking screenshots of elements
+        // We need this for taking screenshots of elements
         process.env.BROWSERSTACK_USE_AUTOMATE = '1';
 
         return runner
