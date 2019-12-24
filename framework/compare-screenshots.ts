@@ -1,82 +1,97 @@
-import { UAParser } from 'ua-parser-js';
+import { createCanvas, loadImage } from 'canvas';
+import { copyFileSync, createWriteStream, existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs';
+import { resolve } from 'path';
 
-const fs = require('fs');
-const path = require('path');
-const PNG = require('pngjs').PNG;
+import Config from './config';
+
 const compareImages = require('resemblejs/compareImages');
 
-const screenshotRootDir = './screenshots/';
+const screenshotRootDir = 'screenshots/';
 const baselineScreenshotDir = 'baseline/';
-const testScreenshotDir = 'tests/';
+const actualScreenshotDir = 'tests/';
 const diffScreenshotDir = 'diff/';
-const combinedScreenshotDir = 'combined/';
 
-export default async (t, element): Promise<number> => {
+function createDirectoryIfNotExists(dir: string): void {
+    if (!existsSync(dir)) {
+        mkdirSync(dir, {recursive: true});
+    }
+}
 
-  const userAgent = await t.eval(() => window.navigator.userAgent);
-  const browserName = new UAParser().setUA(userAgent).getBrowser().name;
-  const elementWidth = await element.offsetWidth;
-  const elementHeight = await element.offsetHeight;
+async function combineReportImage(baselineScreenshotPath: string, testScreenshotPath: string, diffScreenshotPath: string): Promise<void> {
+    const baselineImage = await loadImage(baselineScreenshotPath);
+    const testImage = await loadImage(testScreenshotPath);
+    const diffImage = await loadImage(diffScreenshotPath);
 
-  // @ts-ignore
-  const testCase = t.testRun.test.name;
+    const {width, height} = baselineImage;
 
-  const imgName = `${testCase}_${browserName}_${elementWidth}x${elementHeight}.png`;
+    const canvas = createCanvas(width * 3, height);
+    const ctx = canvas.getContext('2d');
 
-  const testScreenshotPath = path.resolve(screenshotRootDir, testScreenshotDir, imgName);
-  const baselineScreenshotPath = path.resolve(screenshotRootDir, baselineScreenshotDir, imgName);
-  const diffScreenshotPath = path.resolve(screenshotRootDir, diffScreenshotDir, imgName);
-  const combinedScreenshotPath = path.resolve(screenshotRootDir, combinedScreenshotDir, imgName);
+    ctx.drawImage(baselineImage, 0, 0, width, height);
+    ctx.drawImage(testImage, width, 0, width, height);
+    ctx.drawImage(diffImage, 2 * width, 0, width, height);
 
-  await t.takeElementScreenshot(element, testScreenshotDir + imgName);
-  const testScreenshotPNG = PNG.sync.read(fs.readFileSync(testScreenshotPath));
-  const {width: testScreenshotWidth, height: testScreenshotHeight} = testScreenshotPNG;
+    // add header
+    ctx.font = '15px Impact';
+    ctx.fillText('Baseline', 0, 12);
+    ctx.fillText('Actual', width, 12);
+    ctx.fillText('Diff', width * 2, 12);
 
-  try {
-    PNG.sync.read(fs.readFileSync(baselineScreenshotPath));
-  } catch (err) {
-    // no baseline, copy current value
-    fs.copyFileSync(testScreenshotPath, baselineScreenshotPath);
-    console.error('ERROR: No baseline present, saving current screenshot as baseline');
+    const out = createWriteStream(testScreenshotPath);
+    const stream = canvas.createPNGStream();
 
-    return 999;
-  }
+    stream.pipe(out);
+}
 
-  const options = {
-    output: {
-      errorColor: {
-        red: 255,
-        green: 0,
-        blue: 255
-      },
-      errorType: 'movement',
-      outputDiff: true
-    },
-    scaleToSameSize: true,
-    ignore: 'antialiasing'
-  };
+export async function compareElementScreenshot(t: TestController, element: Selector, feature: string): Promise<any> {
+    // @ts-ignore
+    const testCase = t.testRun.test.name;
 
-  const result = await compareImages(
-    await fs.readFileSync(baselineScreenshotPath),
-    await fs.readFileSync(testScreenshotPath),
-    options
-  );
+    const imgName = `${testCase}_${t.browser.name}_${t.browser.os.name}.png`;
 
-  fs.writeFileSync(diffScreenshotPath, result.getBuffer());
+    createDirectoryIfNotExists(resolve(screenshotRootDir, actualScreenshotDir, feature));
+    createDirectoryIfNotExists(resolve(screenshotRootDir, baselineScreenshotDir, feature));
+    createDirectoryIfNotExists(resolve(screenshotRootDir, diffScreenshotDir, feature));
 
-  // write combined image to testScreenshot for reporting
-  const combineTiles = require('combine-tiles');
+    const actualScreenshotPath = resolve(screenshotRootDir, actualScreenshotDir, feature, imgName);
+    const baselineScreenshotPath = resolve(screenshotRootDir, baselineScreenshotDir, feature, imgName);
+    const diffScreenshotPath = resolve(screenshotRootDir, diffScreenshotDir, feature, imgName);
 
-  const tiles = [
-    {x: 0, y: 0, file: baselineScreenshotPath},
-    {x: 1, y: 0, file: testScreenshotPath},
-    {x: 2, y: 0, file: diffScreenshotPath}
-  ];
+    await t.takeElementScreenshot(element, actualScreenshotDir + feature + '/' + imgName);
 
-  return combineTiles(tiles, testScreenshotWidth, testScreenshotHeight, combinedScreenshotPath).then(() => {
-    fs.copyFileSync(combinedScreenshotPath, testScreenshotPath);
+    if (!existsSync(baselineScreenshotPath)) {
+        copyFileSync(actualScreenshotPath, baselineScreenshotPath);
+        await t.expect('no baseline').notOk('No baseline present, saving actual element screenshot as baseline');
+    }
 
-    return result.rawMisMatchPercentage;
-  })
-    .catch(console.error);
-};
+    const options = {
+        output: {
+            errorColor: {
+                red: 255,
+                green: 0,
+                blue: 255
+            },
+            errorType: 'movement',
+            outputDiff: true
+        },
+        scaleToSameSize: true,
+        ignore: 'antialiasing'
+    };
+
+    // compare images
+    const result = await compareImages(
+        await readFileSync(baselineScreenshotPath),
+        await readFileSync(actualScreenshotPath),
+        options
+    );
+
+    writeFileSync(diffScreenshotPath, result.getBuffer());
+
+    // write combined image to testScreenshot for reporting
+    await combineReportImage(baselineScreenshotPath, actualScreenshotPath, diffScreenshotPath);
+
+    return {
+        areEqual: result.rawMisMatchPercentage <= Config.MAX_DIFF_PERC,
+        errorMessage: `Element screenshot difference greater then max diff percentage: expected ${result.rawMisMatchPercentage} to be less or equal to ${Config.MAX_DIFF_PERC}`
+    };
+}
