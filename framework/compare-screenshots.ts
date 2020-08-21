@@ -17,7 +17,7 @@ function createDirectoryIfNotExists(dir: string): void {
     }
 }
 
-async function combineReportImage(baselineScreenshotPath: string, testScreenshotPath: string, diffScreenshotPath: string): Promise<void> {
+async function combineReportImage(t: TestController, baselineScreenshotPath: string, testScreenshotPath: string, diffScreenshotPath: string): Promise<void> {
     const baselineImage = await loadImage(baselineScreenshotPath);
     const testImage = await loadImage(testScreenshotPath);
     const diffImage = await loadImage(diffScreenshotPath);
@@ -32,15 +32,29 @@ async function combineReportImage(baselineScreenshotPath: string, testScreenshot
     ctx.drawImage(diffImage, 2 * width, 0, width, height);
 
     // add header
-    ctx.font = '15px Impact';
-    ctx.fillText('Baseline', 0, 12);
-    ctx.fillText('Actual', width, 12);
-    ctx.fillText('Diff', width * 2, 12);
+    ctx.font = '18px Impact';
+    ctx.fillText('Baseline', 0, 15);
+    ctx.fillText('Actual', width, 15);
+    ctx.fillText('Diff', width * 2, 15);
+
+    ctx.fillText(`Browser: ${t.browser.name}/${t.browser.os.name}`, 0, 30);
 
     const out = createWriteStream(testScreenshotPath);
     const stream = canvas.createPNGStream();
 
     stream.pipe(out);
+
+    return new Promise((res, rej) => {
+        out.on('finish', res);
+        out.on('error', (err) => {
+            rej(err);
+            out.close();
+        });
+        stream.on('error', (err) => {
+            rej(err);
+            out.close();
+        });
+    });
 }
 
 export async function compareElementScreenshot(t: TestController, element: Selector, feature: string): Promise<any> {
@@ -88,7 +102,7 @@ export async function compareElementScreenshot(t: TestController, element: Selec
     writeFileSync(diffScreenshotPath, result.getBuffer());
 
     // write combined image to testScreenshot for reporting
-    await combineReportImage(baselineScreenshotPath, actualScreenshotPath, diffScreenshotPath);
+    await combineReportImage(t, baselineScreenshotPath, actualScreenshotPath, diffScreenshotPath);
 
     return {
         areEqual: result.rawMisMatchPercentage <= Config.MAX_DIFF_PERC,
