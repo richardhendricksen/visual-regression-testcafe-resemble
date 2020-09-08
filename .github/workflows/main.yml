@@ -14,10 +14,10 @@ jobs:
           export DISPLAY=':99.0'
           Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
 
-      - name: Install node.js 10
+      - name: Install node.js 12
         uses: actions/setup-node@v1
         with:
-          node-vesion: 10
+          node-version: 12
 
       - name: Run test
         run: |
