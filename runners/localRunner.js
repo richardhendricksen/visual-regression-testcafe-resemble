@@ -9,10 +9,7 @@ createTestCafe('localhost', 1337, 1338)
         return runner
             .src(['tests/**/*.spec.ts'])
             .browsers(['chrome'])
-            .reporter(['spec', {
-                name: 'html',
-                output: 'reports/report.html'
-            }])
+            .reporter(['spec', 'allure'])
             .run();
     })
     .then(failedCount => {

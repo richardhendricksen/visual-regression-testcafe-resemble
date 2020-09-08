@@ -6,4 +6,4 @@ This repository shows how to setup Visual Regression Testing using TestCafe and 
 Run with `yarn test`.
 
 ### Reporting
-HTML report will be generated in `reports` folder.
+Allure is used for reporting. Open report after test with `yarn test:report`.

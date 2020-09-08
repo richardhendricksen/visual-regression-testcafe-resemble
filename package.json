@@ -5,7 +5,8 @@
   "scripts": {
     "test": "node runners/localRunner.js",
     "test:bs": "node runners/browserstackRunner.js",
-    "test:ci": "node runners/ciRunner.js"
+    "test:ci": "node runners/ciRunner.js",
+    "test:report": "allure serve ./.allure/allure-results"
   },
   "keywords": [
     "testcafe",
@@ -14,10 +15,11 @@
   "author": "Richard Hendricksen",
   "license": "ISC",
   "devDependencies": {
+    "allure-commandline": "^2.13.0",
     "resemblejs": "^3.2.3",
     "testcafe": "^1.7.0",
     "testcafe-browser-provider-browserstack": "^1.10.1",
-    "testcafe-reporter-html": "file:framework/testcafe-html-reporter",
+    "testcafe-reporter-allure": "^1.0.5",
     "ua-parser-js": "^0.7.20"
   }
 }

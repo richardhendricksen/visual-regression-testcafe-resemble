@@ -18,6 +18,7 @@ logs
 /screenshots/diff
 /screenshots/tests
 /reports/
+/.allure/
 
 
 ### MacOS
